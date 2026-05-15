@@ -1,0 +1,33 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/composer:2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run quality gate
+        run: ./dev/scripts/quality-gate.sh
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-report
+          path: dev/quality/reports/

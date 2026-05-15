@@ -1,0 +1,11 @@
+[tasks.quality]
+description = "Run the local quality gate"
+run = "./dev/scripts/quality-gate.sh"
+
+[tasks."quality:docker"]
+description = "Run the quality gate in Docker"
+run = "docker run --rm -v \"$PWD:/app\" -w /app docker.io/composer:2 ./dev/scripts/quality-gate.sh"
+
+[tasks."quality:clean"]
+description = "Remove generated quality reports"
+run = "rm -rf dev/quality/reports/* && mkdir -p dev/quality/reports && touch dev/quality/reports/.gitkeep"
