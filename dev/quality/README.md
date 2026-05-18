@@ -54,9 +54,17 @@ Relatorios gerados:
 dev/quality/reports/summary.md
 dev/quality/reports/php-lint.txt
 dev/quality/reports/phpstan/phpstan-summary.txt
+dev/quality/reports/phpstan/phpstan-summary.md
 dev/quality/reports/phpstan/phpstan.txt
 dev/quality/reports/phpstan/phpstan.json
 ```
+
+O `summary.md` e publicado no `Step Summary` do GitHub Actions e contem:
+
+- status dos checks principais
+- metricas agregadas do PHPStan
+- top arquivos com mais achados
+- orientacao para baixar o artifact `quality-gate-report`
 
 Este gate ainda nao e obrigatorio para merge; ele roda em Pull Requests para dar visibilidade inicial sem bloquear o fluxo.
 
@@ -69,3 +77,10 @@ PHPSTAN_ENFORCE=1 ./dev/scripts/quality-gate.sh
 ## Nota sobre dependencias
 
 O projeto depende de `magento/framework`, que normalmente requer acesso ao repositorio Composer da Magento. Por isso, o gate inicial nao executa `composer install` do projeto e baixa uma versao fixa do PHPStan PHAR com verificacao de checksum.
+
+Enquanto as dependencias Magento nao forem instaladas no CI, os achados de PHPStan tendem a incluir bastante ruido de `class.notFound`, `interface.notFound`, `method.notFound` e simbolos globais do Magento. As opcoes futuras sao:
+
+- instalar dependencias Magento no CI com credenciais Composer adequadas
+- criar filtros temporarios para reduzir ruido de dependencias ausentes
+- criar baseline PHPStan depois que a equipe revisar os achados atuais
+- manter PHPStan advisory ate que o ambiente esteja completo
