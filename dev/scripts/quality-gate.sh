@@ -15,6 +15,13 @@ append_summary() {
   printf '%s\n' "$1" >> "${SUMMARY_FILE}"
 }
 
+configure_git_safe_directory() {
+  if command -v git >/dev/null 2>&1; then
+    git config --global --add safe.directory "${GITHUB_WORKSPACE:-$(pwd)}" 2>/dev/null || true
+    git config --global --add safe.directory "$(pwd)" 2>/dev/null || true
+  fi
+}
+
 : > "${SUMMARY_FILE}"
 : > "${PHP_LINT_REPORT}"
 
@@ -22,6 +29,8 @@ append_summary '# Quality Gate'
 append_summary ''
 append_summary '| Check | Result |'
 append_summary '| --- | --- |'
+
+configure_git_safe_directory
 
 log 'Running composer validate'
 if composer validate --no-interaction; then
@@ -35,6 +44,15 @@ else
 fi
 
 log 'Running PHP syntax checks'
+if ! git ls-files >/dev/null 2>&1; then
+  append_summary '| Git files listing | Failed: unable to list tracked files |'
+  log 'Unable to list Git tracked files. Check safe.directory or checkout state.'
+  if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+    cat "${SUMMARY_FILE}" >> "${GITHUB_STEP_SUMMARY}"
+  fi
+  exit 1
+fi
+
 php_files="$(git ls-files '*.php')"
 
 if [ -z "${php_files}" ]; then
