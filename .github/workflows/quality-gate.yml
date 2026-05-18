@@ -1,0 +1,43 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/composer:2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run quality gate
+        run: ./dev/scripts/quality-gate.sh
+
+      - name: Publish quality summary
+        if: always()
+        run: |
+          if [ -f dev/quality/reports/summary.md ]; then
+            cat dev/quality/reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No quality summary was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-report
+          path: dev/quality/reports/
+          retention-days: 14
