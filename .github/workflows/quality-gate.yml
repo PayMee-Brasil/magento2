@@ -25,9 +25,19 @@ jobs:
       - name: Run quality gate
         run: ./dev/scripts/quality-gate.sh
 
+      - name: Publish quality summary
+        if: always()
+        run: |
+          if [ -f dev/quality/reports/summary.md ]; then
+            cat dev/quality/reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No quality summary was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload quality reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: quality-gate-report
           path: dev/quality/reports/
+          retention-days: 14

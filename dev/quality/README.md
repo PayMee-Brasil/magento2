@@ -40,5 +40,32 @@ No GitHub Actions, o resumo tambem aparece no `Step Summary` e os arquivos em `d
 
 - `composer validate`
 - `php -l` nos arquivos PHP versionados
+- PHPStan `level: 0` em modo informativo
+
+O PHPStan usa a configuracao em:
+
+```text
+dev/quality/phpstan.neon
+```
+
+Relatorios gerados:
+
+```text
+dev/quality/reports/summary.md
+dev/quality/reports/php-lint.txt
+dev/quality/reports/phpstan/phpstan-summary.txt
+dev/quality/reports/phpstan/phpstan.txt
+dev/quality/reports/phpstan/phpstan.json
+```
 
 Este gate ainda nao e obrigatorio para merge; ele roda em Pull Requests para dar visibilidade inicial sem bloquear o fluxo.
+
+Por padrao, PHPStan roda em modo informativo porque o modulo depende de classes Magento que podem nao estar instaladas no ambiente de CI. Para tornar PHPStan bloqueante no futuro:
+
+```bash
+PHPSTAN_ENFORCE=1 ./dev/scripts/quality-gate.sh
+```
+
+## Nota sobre dependencias
+
+O projeto depende de `magento/framework`, que normalmente requer acesso ao repositorio Composer da Magento. Por isso, o gate inicial nao executa `composer install` do projeto e baixa uma versao fixa do PHPStan PHAR com verificacao de checksum.
